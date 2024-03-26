@@ -259,13 +259,15 @@ const onStartup = async () => {
 //console.log('onStartup');
   await onUpdate();
 };
+
+let startupingPromise = null;
 const startuping = async () => {
 //console.log('startuping');
   const sessionStorage = await chrome.storage.session?.get({startup:false});
   if (!sessionStorage?.startup) {
     await chrome.storage.session?.set({startup:true});
     
-    const manifest = await chrome.runtime.getManifest();
+    const manifest = chrome.runtime.getManifest();
     const localStorage = await chrome.storage.local.get({extension_version:''});
     if (manifest.version != localStorage.extension_version) {
       await chrome.storage.local.set({extension_version:manifest.version});
@@ -287,7 +289,6 @@ const startuping = async () => {
   //       標準機能では、 onStartup > onInstalled の順で実行されることがあります
   //       また、並行（非同期）に実行されることがあります
 };
-let startupingPromise = null;
 const startup = async () => {
 //console.log('startup', startupingPromise);
   if (startupingPromise) {
