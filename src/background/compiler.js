@@ -227,7 +227,7 @@ function compile(format, keyset, options) {
           } else {
             const obj = JSON.parse(input);
             if (typeof obj === "object" && obj !== null) {
-              if (obj[idx] !== void 0) {
+              if (Object.hasOwn(obj, idx) && obj[idx] !== void 0) {
                 ret = obj[idx];
               } else {
                 ret = '';
