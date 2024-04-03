@@ -145,7 +145,7 @@ async function executeScript(tab, cmd) {
         //       window.CopyTabTitleUrl = new Proxy(window.CopyTabTitleUrl||={}, {get:()=>'hack world2'});
         //       これは、特権領域（ISOLATED）を保護するための措置です。
         //   see https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Sharing_objects_with_page_scripts
-        // 備考：getter でエラーが発生の可能性がある。ペ本エラーは ${pageError} に出力しません。
+        // 備考：getter でエラーが発生の可能性がある。本エラーは ${pageError} に出力しません。
         //       TypeError: can't convert undefined to object
         //       Object.defineProperty(window, 'CopyTabTitleUrl', {get:()=>{return window.aaa.bbb, {text0:'hack world3'};}});
       } else {
