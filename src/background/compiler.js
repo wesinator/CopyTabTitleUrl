@@ -50,7 +50,7 @@ function compile(format, keyset, options) {
     'tabs', 'tab', 'scripting',
   ];
   
-  const re = /^\${(?:(?<out>\w+)=)?(?<in>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?<supp>\[(?<idx>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')\]|\.(?<fn>\w+)(?<args>\((?:(?<arg1>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?:,(?<arg2>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?:,(?<argn>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*'))*)?)?\))?)?}$/;
+  const re = /^\${(?:(?<out>\w+)=)?(?<in>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?<supp>\[(?<idx>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')\]|\.(?<fn>\w+)(?<args>\((?:(?<arg1>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?:,(?<argn>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*'))*)?\))?)?}$/;
   const reArgs = /(\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')/g;
   // ${(out=)in([idx]|.fn|.fn(args))}
   // ${in.fn(arg1,arg2)}
@@ -94,10 +94,11 @@ function compile(format, keyset, options) {
         // Deprecated: The feature will be deprecated if a better way to access the element is found.
         // ${out=globalThis["tab.status"]} => ${tab.status}
       } else if (m.groups.in === 'System' && m.groups.args != null) {
-        const arg1 = toValue(m.groups.arg1);
+        const args = m.groups.args.match(reArgs)?.map(v => toValue(v)) ?? [];
+        const arg1 = args[0];//toValue(m.groups.arg1);
         switch (m.groups.fn) {
-        case 'log':                     // System.log(msg: string): empty
-          console.log(arg1);    // WebExtension background DevTools Console
+        case 'log':                             // System.log(msg: string): empty
+          console.log.apply(console, args);     // WebExtension background DevTools Console
           ret = '';
           success = true;
           break;
@@ -112,26 +113,10 @@ function compile(format, keyset, options) {
 //          }
 //          break;
         }
-//      } else if ((m.groups.in === 'console' || m.groups.in === 'window') && m.groups.args != null) {
-//        if (options?.cmd && options?.tab && options?.tabs?.length === 1) {
-//          const arg1 = toValue(m.groups.arg1);
-//          const arg2 = toValue(m.groups.arg2);
-//          switch (m.groups.in+'.'+m.groups.fn) {
-//          case 'console.log':
-//            success = await executeConsoleLog(options.tab, options.cmd, [arg1]);
-//            ret = '';
-//            break;
-//          case 'window.prompt':
-//            ret = await executePrompt(options.tab, options.cmd, [arg1, arg2]);
-//            success = ret != null;
-//            ret = ret ?? '';
-//            // 備考：string.replace async 問題あり
-//            break;
-//          }
-//        }
       } else if (m.groups.in === 'Math' && m.groups.args != null) {
-        const arg1 = toValue(m.groups.arg1);
-        const arg2 = toValue(m.groups.arg2);
+        const args = m.groups.args.match(reArgs)?.map(v => toValue(v)) ?? [];
+        const arg1 = args[0];//toValue(m.groups.arg1);
+        const arg2 = args[1];//toValue(m.groups.arg2);
         if (isInteger(arg1) && isInteger(arg2)) {
           switch (m.groups.fn) {
           case 'add':   ret = arg1 + arg2;    success = true; break;
@@ -187,8 +172,8 @@ function compile(format, keyset, options) {
           // ${String.fromCharCode(65,66,67)} => ABC v3.5.12
         }
       } else if (m.groups.in === 'Date' && m.groups.args != null && options?.now) {
-        const arg1 = toValue(m.groups.arg1);
-        const arg2 = toValue(m.groups.arg2);
+        const args = m.groups.args.match(reArgs)?.map(v => toValue(v)) ?? [];
+        const arg1 = args[0];//toValue(m.groups.arg1);
         switch (m.groups.fn) {
         case 'toDateString':  ret = options.now.toDateString(); success = true; break;
         case 'toISOString':   ret = options.now.toISOString();  success = true; break;
@@ -253,10 +238,10 @@ function compile(format, keyset, options) {
           // ${title.length}
         } else if (m.groups.args != null) {
           const func = m.groups.fn;
-          const arg1 = toValue(m.groups.arg1);
-          const arg2 = toValue(m.groups.arg2);
           const args = m.groups.args.match(reArgs)?.map(v => toValue(v)) ?? [];
-//console.log('fn()', input, func, arg1, arg2, args);
+          const arg1 = args[0];//toValue(m.groups.arg1);
+          const arg2 = args[1];//toValue(m.groups.arg2);
+//console.log('fn()', input, func, args);
           switch (func) {
           case 'replace':       // in.replace(pattern: RegExp, replacement: string): string
           case 'replaceAll':    // in.replaceAll(pattern: RegExp, replacement: string): string
