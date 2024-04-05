@@ -222,7 +222,8 @@ async function executeScript(tab, cmd) {
   // 備考：allFrames が一番問題確率が高いため、後に実行する（#66）
   
   
-  const isPrompt = tab.active && !(isMobile() && cmd.callback) && /\${(?:(?<out>\w+)=)?pagePrompt(?<supp>\[(?<idx>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')\]|\.(?<fn>\w+)(?<args>\((?:(?<arg1>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?:,(?<arg2>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*'))?)?\))?)?}/.test(cmd.format);
+  const isPrompt = tab.active && !(isMobile() && cmd.callback) && /\${(?:(?<out>\w+)=)?pagePrompt(?<supp>\[(?<idx>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')\]|\.(?<fn>\w+)(?<args>\((?:(?<arg1>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?:,(?<arg2>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?:,(?<argn>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*'))*)?)?\))?)?}/.test(cmd.format);
+  // 備考：次の３点が元々の正規表現と異なる（/^...pagePrompt...$/, ^, pagePrompt, $）
   if (!data.pageError && isPrompt) {
     try {
       const world = 'ISOLATED';

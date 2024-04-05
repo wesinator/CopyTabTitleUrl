@@ -47,7 +47,8 @@ function compile(format, keyset, options) {
     'tabs', 'tab', 'scripting',
   ];
   
-  const re = /^\${(?:(?<out>\w+)=)?(?<in>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?<supp>\[(?<idx>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')\]|\.(?<fn>\w+)(?<args>\((?:(?<arg1>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?:,(?<arg2>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*'))?)?\))?)?}$/;
+  const re = /^\${(?:(?<out>\w+)=)?(?<in>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?<supp>\[(?<idx>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')\]|\.(?<fn>\w+)(?<args>\((?:(?<arg1>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?:,(?<arg2>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?:,(?<argn>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*'))*)?)?\))?)?}$/;
+  const reArgs = /(\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')/g;
   // ${(out=)in([idx]|.fn|.fn(args))}
   // ${in.fn(arg1,arg2)}
   // ${in.fn}
@@ -172,18 +173,15 @@ function compile(format, keyset, options) {
           }
         }
       } else if (m.groups.in === 'String' && m.groups.args != null) {
-        const arg1 = toValue(m.groups.arg1);
-        const arg2 = toValue(m.groups.arg2);
-        if (isInteger(arg1) && (arg2 == null || isInteger(arg2))) {
-          const args = [arg1];
-          if (arg2 != null) { args.push(arg2); }
+        const args = m.groups.args.match(reArgs)?.map(v => toValue(v)) ?? [];
+        if (args.every(arg => isInteger(arg))) {
           switch (m.groups.fn) {
           case 'fromCharCode':  ret = String.fromCharCode.apply(null, args);  success = true; break;
           case 'fromCodePoint': ret = String.fromCodePoint.apply(null, args); success = true; break;
           }
-          // String.fromCharCode(num1: number): string
-          // String.fromCharCode(num1: number, num2: number): string
+          // String.fromCharCode(...args: number): string
           // ${String.fromCharCode(65,66)} => AB
+          // ${String.fromCharCode(65,66,67)} => ABC v3.5.12
         }
       } else if (m.groups.in === 'Date' && m.groups.args != null && options?.now) {
         const arg1 = toValue(m.groups.arg1);
@@ -254,7 +252,8 @@ function compile(format, keyset, options) {
           const func = m.groups.fn;
           const arg1 = toValue(m.groups.arg1);
           const arg2 = toValue(m.groups.arg2);
-//console.log('fn()', input, func, arg1, arg2);
+          const args = m.groups.args.match(reArgs)?.map(v => toValue(v)) ?? [];
+//console.log('fn()', input, func, arg1, arg2, args);
           switch (func) {
           case 'replace':       // in.replace(pattern: RegExp, replacement: string): string
           case 'replaceAll':    // in.replaceAll(pattern: RegExp, replacement: string): string
@@ -329,10 +328,8 @@ function compile(format, keyset, options) {
             ret = input[func](arg1);
             success = true;
             break;
-          case 'concat':        // in.concat(): string
-                                // in.concat(str1: string): string
-                                // in.concat(str1: string, str2: string): string
-            ret = input[func](arg1 ?? '', arg2 ?? '');
+          case 'concat':        // in.concat(...args: string): string
+            ret = String.prototype.concat.apply(input, args);
             success = true;
             // ...args 非対応
             break;
