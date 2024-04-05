@@ -160,6 +160,12 @@ function compile(format, keyset, options) {
             break;
           }
         }
+        switch (m.groups.fn) {
+        case 'any':
+          ret = args.find(arg => toBoolean(arg)) ?? '';
+          success = true;
+          break;
+        }
       } else if (m.groups.in === 'String' && m.groups.args != null) {
         const args = m.groups.args.match(reArgs)?.map(v => toValue(v)) ?? [];
         if (args.every(arg => isInteger(arg))) {
