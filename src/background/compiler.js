@@ -13,7 +13,10 @@ function compile(format, keyset, options) {
   const isInteger = (i) => {
     return Number.isInteger(i) && Number.MIN_SAFE_INTEGER <= i && i <= Number.MAX_SAFE_INTEGER;
   };
-  const toProperty = (text) => keyset['${'+text+'}'];
+  const toProperty = (text) => {
+    const key = '${'+text+'}';
+    return key in keyset ? String(keyset[key]) : null;
+  };
   const toInteger = (text) => {
     const i = Number.parseInt(text);
     return isInteger(i) ? i  : void 0;
@@ -86,7 +89,7 @@ function compile(format, keyset, options) {
     try {
       if (m.groups.in === 'globalThis' && m.groups.idx != null) {
         const input = toValue(m.groups.idx);
-        ret = toProperty(input);
+        ret = keyset['${'+input+'}'];
         success = true;
         // Deprecated: The feature will be deprecated if a better way to access the element is found.
         // ${out=globalThis["tab.status"]} => ${tab.status}
@@ -210,7 +213,7 @@ function compile(format, keyset, options) {
       } else {
         const input = reString.test(m.groups.in)
                     ? m.groups.in.slice(1, -1)
-                    : toProperty(m.groups.in)+'';
+                    : toProperty(m.groups.in);
         // ${'abc'.slice(1)} => bc
         // ${key}, ${key[idx]}, ${key.fn()}
         if (input == null) {
