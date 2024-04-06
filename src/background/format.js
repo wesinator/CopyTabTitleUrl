@@ -135,6 +135,7 @@ const createFormatText = (cmd, tabs) => {
     //keyset['${String}'] = 'String';
     // 未定義の方が違和感がない？
     //keyset['${tabs.length}'] = tabs.length;
+    keyset['${language}'] = navigator.language;
     keyset['${tabsLength}'] = tabs.length;
   }
   if (isText) {
