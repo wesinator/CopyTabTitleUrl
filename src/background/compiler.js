@@ -87,21 +87,26 @@ function compile(format, keyset, options) {
 //console.log('copy_programmable', m, keyset);
     
     try {
-      if (m.groups.in === 'globalThis' && m.groups.idx != null) {
-        const input = toValue(m.groups.idx);
-        ret = keyset['${'+input+'}'];
-        success = true;
-        // Deprecated: The feature will be deprecated if a better way to access the element is found.
-        // ${out=globalThis["tab.status"]} => ${tab.status}
-      } else if (m.groups.in === 'System' && m.groups.args != null) {
-        const args = m.groups.args.match(reArgs)?.map(v => toValue(v)) ?? [];
-        const arg1 = args[0];//toValue(m.groups.arg1);
-        switch (m.groups.fn) {
-        case 'log':                             // System.log(msg: string): empty
-          console.log.apply(console, args);     // WebExtension background DevTools Console
-          ret = '';
+      const args = m.groups.args?.match(reArgs)?.map(v => toValue(v)) ?? [];
+      const arg1 = args[0];
+      const arg2 = args[1];
+      
+      if (m.groups.in === 'globalThis') {
+        if (m.groups.idx != null) {
+          const idx = toValue(m.groups.idx);
+          ret = keyset['${'+idx+'}'];
           success = true;
-          break;
+          // Deprecated: The feature will be deprecated if a better way to access the element is found.
+          // ${out=globalThis["tab.status"]} => ${tab.status}
+        }
+      } else if (m.groups.in === 'System') {
+        if (m.groups.args != null) {
+          switch (m.groups.fn) {
+          case 'log':                             // System.log(msg: string): empty
+            console.log.apply(console, args);     // WebExtension background DevTools Console
+            ret = '';
+            success = true;
+            break;
 //        case 'compile':
 //          if (arg1 != null && options?.compile !== true) {
 //            const opt = structuredClone(options);
@@ -112,63 +117,62 @@ function compile(format, keyset, options) {
 //            // 備考：再帰処理は、許容しない。
 //          }
 //          break;
-        }
-      } else if (m.groups.in === 'Math' && m.groups.args != null) {
-        const args = m.groups.args.match(reArgs)?.map(v => toValue(v)) ?? [];
-        const arg1 = args[0];//toValue(m.groups.arg1);
-        const arg2 = args[1];//toValue(m.groups.arg2);
-        if (isInteger(arg1) && isInteger(arg2)) {
-          switch (m.groups.fn) {
-          case 'add':   ret = arg1 + arg2;    success = true; break;
-          case 'sub':   ret = arg1 - arg2;    success = true; break;
-          case 'mul':   ret = arg1 * arg2;    success = true; break;
-          case 'div':   ret = Math.floor(arg1 / arg2);  success = true; break;
-          case 'mod':   ret = arg1 % arg2;    success = true; break;
-          case 'lt':    ret = arg1 <  arg2;   success = true; break;
-          case 'lte':   ret = arg1 <= arg2;   success = true; break;
-          case 'gt':    ret = arg1 >  arg2;   success = true; break;
-          case 'gte':   ret = arg1 >= arg2;   success = true; break;
-          }
-          // ${ampm=Math.div(H,12)}
-        }
-        if (arg1 !== void 0 && arg2 !== void 0) {
-          switch (m.groups.fn) {
-          case 'eq':    ret = arg1 == arg2;   success = true; break;
-          case 'neq':   ret = arg1 != arg2;   success = true; break;
-          case 'and':   ret = toBoolean(arg1) && toBoolean(arg2); success = true; break;
-          case 'or':    ret = toBoolean(arg1) || toBoolean(arg2); success = true; break;
-          }
-          // ${x=Math.eq(text0,text1)}${Math.cond(x,text2)}${Math.condn(x,text3)}
-        }
-        if (arg1 !== void 0) {
-          switch (m.groups.fn) {
-          case 'not':   ret = !toBoolean(arg1); success = true; break;
-          case 'cond':  success =  toBoolean(arg1); ret = success ? arg2 ?? arg1 : '';  break;
-          case 'condn': success = !toBoolean(arg1); ret = success ? arg2 ?? arg1 : '';  break;
           }
         }
-        if ((arg1 == null && arg2 == null) || (isInteger(arg1) && (arg2 == null || isInteger(arg2)))) {
+      } else if (m.groups.in === 'Math') {
+        if (m.groups.args != null) {
+          if (isInteger(arg1) && isInteger(arg2)) {
+            switch (m.groups.fn) {
+            case 'add':   ret = arg1 + arg2;    success = true; break;
+            case 'sub':   ret = arg1 - arg2;    success = true; break;
+            case 'mul':   ret = arg1 * arg2;    success = true; break;
+            case 'div':   ret = Math.floor(arg1 / arg2);  success = true; break;
+            case 'mod':   ret = arg1 % arg2;    success = true; break;
+            case 'lt':    ret = arg1 <  arg2;   success = true; break;
+            case 'lte':   ret = arg1 <= arg2;   success = true; break;
+            case 'gt':    ret = arg1 >  arg2;   success = true; break;
+            case 'gte':   ret = arg1 >= arg2;   success = true; break;
+            }
+            // ${ampm=Math.div(H,12)}
+          }
+          if (arg1 !== void 0 && arg2 !== void 0) {
+            switch (m.groups.fn) {
+            case 'eq':    ret = arg1 == arg2;   success = true; break;
+            case 'neq':   ret = arg1 != arg2;   success = true; break;
+            case 'and':   ret = toBoolean(arg1) && toBoolean(arg2); success = true; break;
+            case 'or':    ret = toBoolean(arg1) || toBoolean(arg2); success = true; break;
+            }
+            // ${x=Math.eq(text0,text1)}${Math.cond(x,text2)}${Math.condn(x,text3)}
+          }
+          if (arg1 !== void 0) {
+            switch (m.groups.fn) {
+            case 'not':   ret = !toBoolean(arg1); success = true; break;
+            case 'cond':  success =  toBoolean(arg1); ret = success ? arg2 ?? arg1 : '';  break;
+            case 'condn': success = !toBoolean(arg1); ret = success ? arg2 ?? arg1 : '';  break;
+            }
+          }
+          if ((arg1 == null && arg2 == null) || (isInteger(arg1) && (arg2 == null || isInteger(arg2)))) {
+            switch (m.groups.fn) {
+            case 'random':        // Math.random(): number
+                                  // Math.random(max: number): number
+                                  // Math.random(max: number, min: number): number
+                                  // Math.random(min: number, max: number): number
+              const max = isInteger(arg1) ? arg1 : 2_147_483_647;   // 32bit 符号付き整数の最大値
+              const min = isInteger(arg2) ? arg2 : 0;
+              ret = Math.floor(Math.random() * (max - min)) + min;  // min <= ret < max
+              success = true;
+              break;
+            }
+          }
           switch (m.groups.fn) {
-          case 'random':        // Math.random(): number
-                                // Math.random(max: number): number
-                                // Math.random(max: number, min: number): number
-                                // Math.random(min: number, max: number): number
-            const max = isInteger(arg1) ? arg1 : 2_147_483_647;   // 32bit 符号付き整数の最大値
-            const min = isInteger(arg2) ? arg2 : 0;
-            ret = Math.floor(Math.random() * (max - min)) + min;  // min <= ret < max
+          case 'any':
+            ret = args.find(arg => toBoolean(arg)) ?? '';
             success = true;
             break;
           }
         }
-        switch (m.groups.fn) {
-        case 'any':
-          ret = args.find(arg => toBoolean(arg)) ?? '';
-          success = true;
-          break;
-        }
-      } else if (m.groups.in === 'String' && m.groups.args != null) {
-        const args = m.groups.args.match(reArgs)?.map(v => toValue(v)) ?? [];
-        if (args.every(arg => isInteger(arg))) {
+      } else if (m.groups.in === 'String') {
+        if (m.groups.args != null && args.every(arg => isInteger(arg))) {
           switch (m.groups.fn) {
           case 'fromCharCode':  ret = String.fromCharCode.apply(null, args);  success = true; break;
           case 'fromCodePoint': ret = String.fromCodePoint.apply(null, args); success = true; break;
@@ -177,22 +181,22 @@ function compile(format, keyset, options) {
           // ${String.fromCharCode(65,66)} => AB
           // ${String.fromCharCode(65,66,67)} => ABC v3.5.12
         }
-      } else if (m.groups.in === 'Date' && m.groups.args != null && options?.now) {
-        const args = m.groups.args.match(reArgs)?.map(v => toValue(v)) ?? [];
-        const arg1 = args[0];//toValue(m.groups.arg1);
-        switch (m.groups.fn) {
-        case 'toDateString':  ret = options.now.toDateString(); success = true; break;
-        case 'toISOString':   ret = options.now.toISOString();  success = true; break;
-        case 'toString':      ret = options.now.toString();     success = true; break;
-        case 'toTimeString':  ret = options.now.toTimeString(); success = true; break;
-        case 'toUTCString':   ret = options.now.toUTCString();  success = true; break;
-        case 'toLocaleDateString':  ret = options.now.toLocaleDateString(arg1); success = true; break;
-        case 'toLocaleString':      ret = options.now.toLocaleString(arg1);     success = true; break;
-        case 'toLocaleTimeString':  ret = options.now.toLocaleTimeString(arg1); success = true; break;
+      } else if (m.groups.in === 'Date') {
+        if (m.groups.args != null && options?.now) {
+          switch (m.groups.fn) {
+          case 'toDateString':  ret = options.now.toDateString(); success = true; break;
+          case 'toISOString':   ret = options.now.toISOString();  success = true; break;
+          case 'toString':      ret = options.now.toString();     success = true; break;
+          case 'toTimeString':  ret = options.now.toTimeString(); success = true; break;
+          case 'toUTCString':   ret = options.now.toUTCString();  success = true; break;
+          case 'toLocaleDateString':  ret = options.now.toLocaleDateString(arg1); success = true; break;
+          case 'toLocaleString':      ret = options.now.toLocaleString(arg1);     success = true; break;
+          case 'toLocaleTimeString':  ret = options.now.toLocaleTimeString(arg1); success = true; break;
+          }
+          // Date.toLocaleString()
+          // Date.toLocaleString(locales: string)
+          // ${Date.toLocaleString("ja")}
         }
-        // Date.toLocaleString()
-        // Date.toLocaleString(locales: string)
-        // ${Date.toLocaleString("ja")}
       } else if (m.groups.supp == null) {
         const value = toValue(m.groups.in);
         if (value !== void 0) {
@@ -212,11 +216,11 @@ function compile(format, keyset, options) {
         } else if (m.groups.idx != null) {      // empty: empty
                                                 // array[idx]: boolean|number|string|empty
                                                 // object[idx]: boolean|number|string|empty
-          const idx = toValue(m.groups.idx);
           if (input == '') {
             ret = '';
             success = true;
           } else {
+            const idx = toValue(m.groups.idx);
             const obj = JSON.parse(input);
             if (typeof obj === "object" && obj !== null) {
               if (Object.hasOwn(obj, idx) && obj[idx] !== void 0) {
@@ -233,20 +237,15 @@ function compile(format, keyset, options) {
           // Error: ${'["abc","xyz"]'.length} -> 13 instead of 2
           // 備考：undefined / エラーを極力出力しない。空文字を出力する。
         } else if (m.groups.args == null) {
-          const func = m.groups.fn;
-          switch (func) {
+          switch (m.groups.fn) {
           case 'length':        // in.length: number
-            ret = input[func];
+            ret = input.length;
             success = true;
             break;
+            // ${title.length}
           }
-          // ${in.fn}
-          // ${title.length}
         } else if (m.groups.args != null) {
           const func = m.groups.fn;
-          const args = m.groups.args.match(reArgs)?.map(v => toValue(v)) ?? [];
-          const arg1 = args[0];//toValue(m.groups.arg1);
-          const arg2 = args[1];//toValue(m.groups.arg2);
 //console.log('fn()', input, func, args);
           switch (func) {
           case 'replace':       // in.replace(pattern: RegExp, replacement: string): string
@@ -257,7 +256,8 @@ function compile(format, keyset, options) {
               success = true;
             }
             break;
-          case 'match':         // in.match(regexp: RegExp, flags: string): string[]|empty
+          case 'match':         // in.match(regexp: RegExp): string[]|empty
+                                // in.match(regexp: RegExp, flags: string): string[]|empty
             if (arg1 != null) {
               const flags = arg2 == 'g' ? 'g' : '';
               ret = input[func](new RegExp(arg1, flags));
@@ -273,21 +273,26 @@ function compile(format, keyset, options) {
               success = true;
             }
             break;
-          case 'substring':     // in.substring(indexStart: number): string
-                                // in.substring(indexStart: number, indexEnd: number): string
-          case 'slice':         // in.slice(indexStart: number): string
-                                // in.slice(indexStart: number, indexEnd: number): string
-            if (isInteger(arg1) && (arg2 == null || isInteger(arg2))) {
-              ret = input[func](arg1, arg2);
+          case 'split':         // in.split(separator: string): string[]
+                                // in.split(separator: string, limit: number): string[]
+            ret = JSON.stringify(input[func].apply(input, args));
+            success = true;
+            // '[]', '["abc","def"]'
+            break;
+          case 'normalize':     // in.normalize(): string
+                                // in.normalize(form: string): string
+            if ([void 0, 'NFC', 'NFD', 'NFKC', 'NFKD'].includes(arg1)) {
+              ret = input[func].apply(input, args);
               success = true;
+              // RangeError: The normalization form should be one of NFC, NFD, NFKC, NFKD.
             }
             break;
-          case 'padStart':      // in.padStart(targetLength: number): string
-                                // in.padStart(targetLength: number, padString: string): string
-          case 'padEnd':        // in.padEnd(targetLength: number): string
-                                // in.padEnd(targetLength: number, padString: string): string
-            if (isInteger(arg1)) {
-              ret = input[func](arg1, arg2);
+          case 'slice':         // in.slice(indexStart: number): string
+                                // in.slice(indexStart: number, indexEnd: number): string
+          case 'substring':     // in.substring(indexStart: number): string
+                                // in.substring(indexStart: number, indexEnd: number): string
+            if (isInteger(arg1) && (arg2 == null || isInteger(arg2))) {
+              ret = input[func].apply(input, args);
               success = true;
             }
             break;
@@ -295,12 +300,17 @@ function compile(format, keyset, options) {
           case 'charAt':        // in.charAt(index: number): string
           case 'charCodeAt':    // in.charCodeAt(index: number): number
           case 'codePointAt':   // in.codePointAt(index: number): number
+          case 'padStart':      // in.padStart(targetLength: number): string
+                                // in.padStart(targetLength: number, padString: string): string
+          case 'padEnd':        // in.padEnd(targetLength: number): string
+                                // in.padEnd(targetLength: number, padString: string): string
           case 'repeat':        // in.repeat(count: number): string
             if (isInteger(arg1)) {
-              ret = input[func](arg1);
+              ret = input[func].apply(input, args);
               success = true;
             }
             break;
+          case 'concat':        // in.concat(...args: string): string
           case 'startsWith':    // in.startsWith(searchString: string): boolean
                                 // in.startsWith(searchString: string, position: number): boolean
           case 'endsWith':      // in.endsWith(searchString: string): boolean
@@ -311,45 +321,24 @@ function compile(format, keyset, options) {
                                 // in.indexOf(searchString: string, position: number): number
           case 'lastIndexOf':   // in.lastIndexOf(searchString: string): number
                                 // in.lastIndexOf(searchString: string, position: number): number
-            if (arg1 != null) {
-              ret = input[func](arg1, arg2);
-              success = true;
-            }
-            break;
-          case 'normalize':     // in.normalize(): string
-                                // in.normalize(form: string): string
-            // RangeError: The normalization form should be one of NFC, NFD, NFKC, NFKD.
-            ret = input[func](arg1);
-            success = true;
-            break;
-          case 'concat':        // in.concat(...args: string): string
-            ret = String.prototype.concat.apply(input, args);
-            success = true;
-            // ...args 非対応
-            break;
-          case 'split':         // in.split(separator: string): string[]
-                                // in.split(separator: string, limit: number): string[]
-            if (arg1 != null) {
-              ret = JSON.stringify(input[func](arg1, arg2));
-              success = true;
-              // '[]', '["abc","def"]'
-            }
-            break;
+          case 'localeCompare': // in.localeCompare(compareString: string): number
+                                // in.localeCompare(compareString: string, locales: string): number
           case 'isWellFormed':  // in.isWellFormed(): boolean
-          case 'trim':          // in.trim(): string
-          case 'trimStart':     // in.trimStart(): string
-          case 'trimEnd':       // in.trimEnd(): string
           case 'toLocaleLowerCase': // in.toLocaleLowerCase(): string
+                                    // in.toLocaleLowerCase(locales: string): string
           case 'toLocaleUpperCase': // in.toLocaleUpperCase(): string
+                                    // in.toLocaleUpperCase(locales: string): string
           case 'toLowerCase':   // in.toLowerCase(): string
           case 'toString':      // in.toString(): string
           case 'toUpperCase':   // in.toUpperCase(): string
           case 'toWellFormed':  // in.toWellFormed(): string
+          case 'trim':          // in.trim(): string
+          case 'trimStart':     // in.trimStart(): string
+          case 'trimEnd':       // in.trimEnd(): string
           case 'valueOf':       // in.valueOf(): string
-            ret = input[func]();
+            ret = input[func].apply(input, args);
             success = true;
             break;
-          //case 'localeCompare': // in.localeCompare(compareString: string): number
           //case 'matchAll':      // in.matchAll(regexp: RegExp): Iterator<string[]>
           // see https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
           }
