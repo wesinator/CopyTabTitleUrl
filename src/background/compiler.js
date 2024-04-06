@@ -390,6 +390,9 @@ function createDefaltKeyset(cmd) {
     keyset['${false}'] = false;
     keyset['${NaN}'] = NaN;
     keyset['${Infinity}'] = Infinity;
+    keyset['${dollar}'] = '$';
+    keyset['${lbrace}'] = '{';
+    keyset['${rbrace}'] = '}';
   }
   return keyset;
   // 備考：cmd なしでも動作する
