@@ -8,36 +8,36 @@
 
 //export 
 function compile(format, keyset, options) {
-  const reInteger = /^[+\-]?\d+$/;
+  const reInt = /^[+\-]?\d+$/;
   const reString = /^("[^"}]*"|'[^'}]*')$/;
-  const isInteger = (i) => {
+  const isInt = (i) => {
     return Number.isInteger(i) && Number.MIN_SAFE_INTEGER <= i && i <= Number.MAX_SAFE_INTEGER;
   };
   const toProperty = (text) => {
     const key = '${'+text+'}';
     return key in keyset ? String(keyset[key]) : null;
   };
-  const toInteger = (text) => {
+  const toInt = (text) => {
     const i = Number.parseInt(text);
-    return isInteger(i) ? i  : void 0;
+    return isInt(i) ? i : void 0;
   };
   const toValue = (text) => {
     if (text == null) {
       return void 0;
-    } else if (reInteger.test(text)) {
-      return toInteger(text);
+    } else if (reInt.test(text)) {
+      return toInt(text);
     } else if (reString.test(text)) {
       return text.slice(1, -1);
     } else if (keyset['${'+text+'}'] !== void 0) {
-      if (reInteger.test(keyset['${'+text+'}'])) {
-        const i = toInteger(keyset['${'+text+'}']);
+      if (reInt.test(keyset['${'+text+'}'])) {
+        const i = toInt(keyset['${'+text+'}']);
         if (i != null) { return i; }
       }
       return keyset['${'+text+'}'];
     }
     return void 0;
   };
-  const toBoolean = (value) => {
+  const toBool = (value) => {
     return !!value;
     // false: false, undefined, null, NaN, 0, ''
     // true: true, -1, 'false', 'undefined', 'null', 'NaN', '0'
@@ -81,7 +81,7 @@ function compile(format, keyset, options) {
     
     let ret = match;
     let res = false;
-    const result = (t, s=true) => (ret = t, res = s);
+    const result = (t, s=true) => { ret=t; res=s; };
     
     const m = match.match(re);
     if (m == null) { return ret; }
@@ -119,59 +119,48 @@ function compile(format, keyset, options) {
         }
       } else if (m.groups.in === 'Math') {
         if (m.groups.args != null) {
-          if (isInteger(arg1) && isInteger(arg2)) {
-            switch (m.groups.fn) {
-            case 'add':   result(arg1 + arg2);  break;
-            case 'sub':   result(arg1 - arg2);  break;
-            case 'mul':   result(arg1 * arg2);  break;
-            case 'div':   result(Math.floor(arg1 / arg2));  break;
-            case 'mod':   result(arg1 % arg2);  break;
-            case 'lt':    result(arg1 <  arg2); break;
-            case 'lte':   result(arg1 <= arg2); break;
-            case 'gt':    result(arg1 >  arg2); break;
-            case 'gte':   result(arg1 >= arg2); break;
-            }
-            // ${ampm=Math.div(H,12)}
-          }
-          if (arg1 !== void 0 && arg2 !== void 0) {
-            switch (m.groups.fn) {
-            case 'eq':    result(arg1 == arg2); break;
-            case 'neq':   result(arg1 != arg2); break;
-            case 'and':   result(toBoolean(arg1) && toBoolean(arg2)); break;
-            case 'or':    result(toBoolean(arg1) || toBoolean(arg2)); break;
-            }
-            // ${x=Math.eq(text0,text1)}${Math.cond(x,text2)}${Math.condn(x,text3)}
-          }
-          if (arg1 !== void 0) {
-            switch (m.groups.fn) {
-            case 'not':   result(!toBoolean(arg1)); break;
-            case 'cond':  result( toBoolean(arg1) ? arg2 ?? arg1 : '',  toBoolean(arg1)); break;
-            case 'condn': result(!toBoolean(arg1) ? arg2 ?? arg1 : '', !toBoolean(arg1)); break;
-            
-            }
-          }
-          if ((arg1 == null && arg2 == null) || (isInteger(arg1) && (arg2 == null || isInteger(arg2)))) {
-            switch (m.groups.fn) {
-            case 'random':        // Math.random(): number
-                                  // Math.random(max: number): number
-                                  // Math.random(max: number, min: number): number
-                                  // Math.random(min: number, max: number): number
-              const max = isInteger(arg1) ? arg1 : 2_147_483_647;   // 32bit 符号付き整数の最大値
-              const min = isInteger(arg2) ? arg2 : 0;
-              result(Math.floor(Math.random() * (max - min)) + min);// min <= ret < max
-              break;
-            }
-          }
           switch (m.groups.fn) {
-          case 'any':
-            result(args.find(arg => toBoolean(arg)) ?? '');
+          case 'add': if (isInt(arg1) && isInt(arg2)) { result(arg1 + arg2); }  break;
+          case 'sub': if (isInt(arg1) && isInt(arg2)) { result(arg1 - arg2); }  break;
+          case 'mul': if (isInt(arg1) && isInt(arg2)) { result(arg1 * arg2); }  break;
+          case 'div': if (isInt(arg1) && isInt(arg2)) { result(Math.floor(arg1 / arg2)); }  break;
+          case 'mod': if (isInt(arg1) && isInt(arg2)) { result(arg1 % arg2); }  break;
+          case 'lt':  if (isInt(arg1) && isInt(arg2)) { result(arg1 <  arg2); } break;
+          case 'lte': if (isInt(arg1) && isInt(arg2)) { result(arg1 <= arg2); } break;
+          case 'gt':  if (isInt(arg1) && isInt(arg2)) { result(arg1 >  arg2); } break;
+          case 'gte': if (isInt(arg1) && isInt(arg2)) { result(arg1 >= arg2); } break;
+          case 'eq':  if (arg1 !== void 0 && arg2 !== void 0) { result(arg1 == arg2); } break;
+          case 'neq': if (arg1 !== void 0 && arg2 !== void 0) { result(arg1 != arg2); } break;
+          case 'and':
+            if (arg1 !== void 0 && arg2 !== void 0) { result(toBool(arg1) && toBool(arg2)); }
+            break;
+          case 'or':
+            if (arg1 !== void 0 && arg2 !== void 0) { result(toBool(arg1) || toBool(arg2)); }
+            break;
+          case 'not': if (arg1 !== void 0) { result(!toBool(arg1)); } break;
+          case 'any': result(args.find(arg => toBool(arg)) ?? ''); break;
+          case 'cond':
+            if (arg1 !== void 0) { result( toBool(arg1) ? arg2 ?? arg1 : '',  toBool(arg1)); }
+            break;
+          case 'condn':
+            if (arg1 !== void 0) { result(!toBool(arg1) ? arg2 ?? arg1 : '', !toBool(arg1)); }
+            break;
+          case 'random':        // Math.random(): number
+                                // Math.random(max: number): number
+                                // Math.random(max: number, min: number): number
+                                // Math.random(min: number, max: number): number
+            if ((arg1 == null && arg2 == null) || (isInt(arg1) && (arg2 == null || isInt(arg2)))) {
+              const max = isInt(arg1) ? arg1 : 2_147_483_647;   // 32bit 符号付き整数の最大値
+              const min = isInt(arg2) ? arg2 : 0;
+              result(Math.floor(Math.random() * (max - min)) + min);// min <= ret < max
+            }
             break;
           }
         }
       } else if (m.groups.in === 'String') {
-        if (m.groups.args != null && args.every(arg => isInteger(arg))) {
+        if (m.groups.args != null && args.every(arg => isInt(arg))) {
           switch (m.groups.fn) {
-          case 'fromCharCode':  result(String.fromCharCode.apply(null, args)); break;
+          case 'fromCharCode':  result(String.fromCharCode.apply(null, args));  break;
           case 'fromCodePoint': result(String.fromCodePoint.apply(null, args)); break;
           }
           // String.fromCharCode(...args: number): string
@@ -277,7 +266,7 @@ function compile(format, keyset, options) {
                                 // in.slice(indexStart: number, indexEnd: number): string
           case 'substring':     // in.substring(indexStart: number): string
                                 // in.substring(indexStart: number, indexEnd: number): string
-            if (isInteger(arg1) && (arg2 == null || isInteger(arg2))) {
+            if (isInt(arg1) && (arg2 == null || isInt(arg2))) {
               result(input[func].apply(input, args));
             }
             break;
@@ -290,7 +279,7 @@ function compile(format, keyset, options) {
           case 'padEnd':        // in.padEnd(targetLength: number): string
                                 // in.padEnd(targetLength: number, padString: string): string
           case 'repeat':        // in.repeat(count: number): string
-            if (isInteger(arg1)) {
+            if (isInt(arg1)) {
               result(input[func].apply(input, args));
             }
             break;
