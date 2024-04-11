@@ -23,19 +23,19 @@ function compile(format, keyset, options) {
   };
   const toValue = (text) => {
     if (text == null) {
-      return void 0;
+      return text;
     } else if (reInt.test(text)) {
       return toInt(text);
     } else if (reString.test(text)) {
       return text.slice(1, -1);
-    } else if (keyset['${'+text+'}'] !== void 0) {
-      if (reInt.test(keyset['${'+text+'}'])) {
-        const i = toInt(keyset['${'+text+'}']);
-        if (i != null) { return i; }
+    } else {
+      const value = keyset['${'+text+'}'];
+      if (reInt.test(value)) {
+        const integer = toInt(value);
+        if (integer != null) { return integer; }
       }
-      return keyset['${'+text+'}'];
+      return value;
     }
-    return void 0;
   };
   const toBool = (value) => {
     return !!value;
@@ -125,12 +125,14 @@ function compile(format, keyset, options) {
           case 'mul': if (isInt(arg1) && isInt(arg2)) { result(arg1 * arg2); }  break;
           case 'div': if (isInt(arg1) && isInt(arg2)) { result(Math.floor(arg1 / arg2)); }  break;
           case 'mod': if (isInt(arg1) && isInt(arg2)) { result(arg1 % arg2); }  break;
-          case 'lt':  if (isInt(arg1) && isInt(arg2)) { result(arg1 <  arg2); } break;
-          case 'lte': if (isInt(arg1) && isInt(arg2)) { result(arg1 <= arg2); } break;
-          case 'gt':  if (isInt(arg1) && isInt(arg2)) { result(arg1 >  arg2); } break;
-          case 'gte': if (isInt(arg1) && isInt(arg2)) { result(arg1 >= arg2); } break;
-          case 'eq':  if (arg1 !== void 0 && arg2 !== void 0) { result(arg1 == arg2); } break;
-          case 'neq': if (arg1 !== void 0 && arg2 !== void 0) { result(arg1 != arg2); } break;
+          case 'lt':  result(arg1 <  arg2); break;
+          case 'lte': result(arg1 <= arg2); break;
+          case 'gt':  result(arg1 >  arg2); break;
+          case 'gte': result(arg1 >= arg2); break;
+          case 'eq':  result(arg1 == arg2); break;
+          case 'neq': result(arg1 != arg2); break;
+          case 'seq': result(arg1 === arg2); break;
+          case 'nseq':result(arg1 !== arg2); break;
           case 'and':
             if (arg1 !== void 0 && arg2 !== void 0) { result(toBool(arg1) && toBool(arg2)); }
             break;
@@ -142,6 +144,7 @@ function compile(format, keyset, options) {
           case 'cond':
             if (arg1 !== void 0) { result( toBool(arg1) ? arg2 ?? arg1 : '',  toBool(arg1)); }
             break;
+          case 'ncond':
           case 'condn':
             if (arg1 !== void 0) { result(!toBool(arg1) ? arg2 ?? arg1 : '', !toBool(arg1)); }
             break;
