@@ -43,8 +43,8 @@ function compile(format, keyset, options) {
     // true: true, -1, 'false', 'undefined', 'null', 'NaN', '0'
   };
   const reserved = [
-    'globalThis', 'this', 'arguments',
-    'Math', 'String', 'Date',
+    'globalThis', 'this', 'arguments', 'System',
+    'Math', 'String', 'Date', 'Boolean', 'Integer', 
     'true', 'false', 'null', 'undefined', 'NaN', 'Infinity',
     '$', 'title', 'url', 'enter',
     'tabs', 'tab', 'scripting',
