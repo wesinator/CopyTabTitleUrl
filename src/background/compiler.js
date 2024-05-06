@@ -53,21 +53,21 @@ function compile(format, keyset, options) {
   const re = /^\${(?:(?<out>\w+)=)?(?<in>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?<supp>\[(?<idx>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')\]|\.(?<fn>\w+)(?<args>\((?:(?<arg1>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?:,(?<argn>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*'))*)?\))?)?}$/;
   const reArgs = /(\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')/g;
   // ${(out=)in([idx]|.fn|.fn(args))}
-  // ${in.fn(arg1,arg2)}
+  // ${in.fn(args)}
   // ${in.fn}
   // ${in[idx]}
   // ${in}
   // ${integer}
   // ${'string'}
   // ${'string'.fn()}
-  // in = constant(Math, String, Date) | variable
+  // in = constant(globalThis, System, Math, String, Date, Boolean, Integer) | variable
   // fn = constant(replace, replaceAll, ...)
-  // out | idx | arg1 | arg2 = variable
+  // out | idx | arg1 | argn = variable
   // variable = property | integer | string
   
   // out = fn = (\w+)
-  // in = idx = arg1 = arg2 = (\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')
-  // re = /^\${(<out>=)?<in>(\[<idx>\]|\.<fn>(\((<arg1>(,<arg2>)?)?\))?)?}$/
+  // in = idx = arg1 = argn = (\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')
+  // re = /^\${(<out>=)?<in>(\[<idx>\]|\.<fn>(\((<arg1>(,<argn>)*)?\))?)?}$/
   
   // 備考：次の要素にアクセスできない（名称に記号が含まれるため）
   //       ${$}, ${:port}, ${username@}, ${username:password@}
