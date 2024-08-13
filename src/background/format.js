@@ -199,6 +199,7 @@ const createFormatText = (cmd, tabs) => {
       keyset['${username:password@}'] = url.username != '' 
                                       ? url.username+(url.password != '' ? ':'+url.password : '')+'@'
                                       : '';
+      keyset['${protocol:}'] = url.protocol + (url.href.startsWith(url.protocol+'//') ? '//' : '');
       keyset['${:port}'] = url.port != '' ? ':'+url.port : '';
       if (isPunycode) {
         try { keyset['${hostname}'] = punycode.toUnicode(url.hostname); } catch {}
