@@ -37,7 +37,7 @@
  *   103: chrome.i18n.getMessage 不具合対応
  *   109: chrome.offscreen
  *   116: chrome.runtime.getContexts({contextTypes:['OFFSCREEN_DOCUMENT']});
-*/
+ */
 
 
 /*
@@ -69,7 +69,9 @@ const module = {};
 
 
 // ブラウザ判定
-const isFirefox = () => 'browser' in globalThis;
+const _isFirefox = chrome.runtime.getManifest()?.browser_specific_settings?.gecko?.id
+                 === 'CopyTabTitleUrl@bugbugnow.net';
+const isFirefox = () => _isFirefox;
 const isChrome = () => !isFirefox();
 const isKiwi = () => isChrome() && /(Android)/i.test(navigator.userAgent);
 const isMobile = () => /(Mobile|Android|iPhone)/i.test(navigator.userAgent);

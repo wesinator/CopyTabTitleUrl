@@ -57,6 +57,7 @@ function updateOptionPage(cmd) {
   
   document.getElementById('copy_scripting_all').disabled = !ex3(cmd, 'copy_scripting');
   document.getElementById('copy_scripting_main').disabled = !ex3(cmd, 'copy_scripting');
+  document.getElementById('copy_scripting_wait').disabled = !ex3(cmd, 'copy_scripting');
   document.getElementById('copy_html').disabled = ex3(cmd, 'copy_clipboard_api');
   document.getElementById('extended_menus').disabled = 
                           !(ex3(cmd, 'copy_programmable') && ex3(cmd, 'copy_text'));

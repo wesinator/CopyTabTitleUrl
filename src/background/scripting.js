@@ -6,20 +6,6 @@
 'use strict';
 
 
-function _executeScriptWithTimeout(obj, time) {
-  return new Promise((resolve, reject) => {
-    chrome.scripting.executeScript(obj)
-                    .then(results => resolve(results))
-                    .catch((e) => reject(e));
-    setTimeout(() => reject('Timeout error.'), time);
-  });
-  // 備考：現実的な時間で応答を返さない（#66）
-  //       chrome.scripting.executeScript({target:{allFrames:true}})
-  //       injectImmediately = true で解決済み
-  //       本コードを一応残しておく。不要ならば、削除してよい。
-};
-
-
 async function executeScript(tab, cmd) {
   if (!cmd.exoptions.copy_scripting) { return null; }
   
@@ -145,7 +131,7 @@ async function executeScript(tab, cmd) {
         //       window.CopyTabTitleUrl = new Proxy(window.CopyTabTitleUrl||={}, {get:()=>'hack world2'});
         //       これは、特権領域（ISOLATED）を保護するための措置です。
         //   see https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Sharing_objects_with_page_scripts
-        // 備考：getter でエラーが発生の可能性がある。ペ本エラーは ${pageError} に出力しません。
+        // 備考：getter でエラーが発生の可能性がある。本エラーは ${pageError} に出力しません。
         //       TypeError: can't convert undefined to object
         //       Object.defineProperty(window, 'CopyTabTitleUrl', {get:()=>{return window.aaa.bbb, {text0:'hack world3'};}});
       } else {
@@ -201,7 +187,6 @@ async function executeScript(tab, cmd) {
         };
       };
       const results = await chrome.scripting.executeScript({world, injectImmediately, target, func});
-      //const results = await _executeScriptWithTimeout({world, injectImmediately, target, func}, 150);
       data.pageSelectionText = results.find(v => v.result?.pageSelectionText)?.result.pageSelectionText 
                             || '';
       data.pageSelectionText = String(data.pageSelectionText);
@@ -222,7 +207,8 @@ async function executeScript(tab, cmd) {
   // 備考：allFrames が一番問題確率が高いため、後に実行する（#66）
   
   
-  const isPrompt = tab.active && !(isMobile() && cmd.callback) && /\${(?:(?<out>\w+)=)?pagePrompt(?<supp>\[(?<idx>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')\]|\.(?<fn>\w+)(?<args>\((?:(?<arg1>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?:,(?<arg2>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*'))?)?\))?)?}/.test(cmd.format);
+  const isPrompt = tab.active && !(isMobile() && cmd.callback) && /\${(?:(?<out>\w+)=)?pagePrompt(?<supp>\[(?<idx>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')\]|\.(?<fn>\w+)(?<args>\((?:(?<arg1>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*')(?:,(?<argn>\w+|[+\-]?\d+|"[^"}]*"|'[^'}]*'))*)?\))?)?}/.test(cmd.format);
+  // 備考：次の３点が元々の正規表現と異なる（/^...pagePrompt...$/, ^, pagePrompt, $）
   if (!data.pageError && isPrompt) {
     try {
       const world = 'ISOLATED';
@@ -252,27 +238,3 @@ async function executeScript(tab, cmd) {
   // 備考：モバイルの ${pagePrompt} は、ポップアップ（完了通知含む）で非対応
   // 備考：separator では、動作しない
 };
-
-
-
-// ${console.log(msg)}
-//async function executeConsoleLog(tab, cmd, args) {
-//  if (cmd.exoptions.copy_scripting && cmd.exoptions.copy_scripting_main) {
-//    const target = {tabId:tab.id};
-//    const func = (msg) => console.log(msg);
-//    const world = 'MAIN';
-//    await chrome.scripting.executeScript({target, func, args, world});
-//    return true;
-//  }
-//  return false;
-//}
-// ${window.prompt(msg, def)}
-//async function executePrompt(tab, cmd, args) {
-//  if (cmd.exoptions.copy_scripting) {
-//    const target = {tabId:tab.id};
-//    const func = (msg, def) => window.prompt(msg, def);
-//    const results = await chrome.scripting.executeScript({target, func, args});
-//    return results[0].result;
-//  }
-//  return null;
-//}
