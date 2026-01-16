@@ -222,6 +222,9 @@ const createFormatText = (cmd, tabs) => {
         });
       }
       // 備考：username, password は、閲覧 URL としては出現しないはず（一応実装しておく）
+      // 備考：hostname のパーセントエンコードは、ブラウザ側が自動的に処理する。
+      //       protocol, username, password, pathname のパーセントエンコードは、処理されない。
+      //       username, password のパーセントエンコードは、デコードすべき？
     }
     
     // Scripting
