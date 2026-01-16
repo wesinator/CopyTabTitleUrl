@@ -140,7 +140,6 @@ function compile(format, keyset, options) {
             if (arg1 !== void 0 && arg2 !== void 0) { result(toBool(arg1) || toBool(arg2)); }
             break;
           case 'not': if (arg1 !== void 0) { result(!toBool(arg1)); } break;
-          case 'any': result(args.find(arg => toBool(arg)) ?? ''); break;
           case 'cond':
             if (arg1 !== void 0) { result( toBool(arg1) ? arg2 ?? arg1 : '',  toBool(arg1)); }
             break;
