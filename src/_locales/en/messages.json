@@ -149,6 +149,10 @@
     "message":    "Use context menu target",
     "description":"Use context menu target"
   },
+  "optionsShortcutPopupContent": {
+    "message":    "Show shortcut completion popup",
+    "description":"Show shortcut completion popup 🧪"
+  },  
   
   
   "optionsFormatLegendContent": {

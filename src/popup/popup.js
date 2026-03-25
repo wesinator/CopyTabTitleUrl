@@ -74,7 +74,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   
   // アクション
-  if (cmd.browser_action === 'popup') {
+  if (cmd.temp_shortcut_popup === true) {
+    // ショートカットの完了通知
+    await chrome.storage.local.set({temp_shortcut_popup: false});
+    
+    document.getElementById('action').hidden = false;
+    setTimeout(() => window.close(), 1000);
+  } else if (cmd.browser_action === 'popup') {
     // ポップアップ表示する
     if (ex3(cmd, 'popup_format2')) {
       document.querySelectorAll('.format2').forEach(element => element.hidden = false);
