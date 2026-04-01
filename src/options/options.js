@@ -97,6 +97,8 @@ function updateOptionPage(cmd) {
   
   
   // その他
+  const spopup = popup || ex3(cmd, 'popup_comlate');
+  document.getElementById('shortcut_popup').disabled = !spopup;
   document.removeEventListener('paste', onPaste, true);
   if (ex3(cmd, 'paste_overwrite')) {
     document.addEventListener('paste', onPaste, true);

@@ -80,7 +80,14 @@ chrome.commands?.onCommand.addListener(async (name, tab) => {
     cmd.format = cmd.formats[id];
     cmd.target = ex3(cmd, 'shortcut_target') ? cmd.menus[id].target : 'tab';
     cmd.tab = tab;
-    onCopy(cmd);
+    await onCopy(cmd);
+    
+    if (ex3(cmd, 'shortcut_popup')) {
+      await chrome.storage.local.set({temp_shortcut_popup: true});
+      await chromeAction.openPopup().catch(() => chrome.storage.local.set({temp_shortcut_popup: false}));
+      // 備考：ポップアップ表示中に、キーボードショートカットを実施した場合、完了通知は表示されない
+      // 備考：ポップアップ表示なしの場合、ショートカットによる、完了通知は表示されない
+    }
   }
 });
 
