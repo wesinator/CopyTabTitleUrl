@@ -57,6 +57,7 @@ function updateOptionPage(cmd) {
   
   document.getElementById('copy_scripting_all').disabled = !ex3(cmd, 'copy_scripting');
   document.getElementById('copy_scripting_main').disabled = !ex3(cmd, 'copy_scripting');
+  document.getElementById('copy_scripting_wait').disabled = !ex3(cmd, 'copy_scripting');
   document.getElementById('copy_html').disabled = ex3(cmd, 'copy_clipboard_api');
   document.getElementById('extended_menus').disabled = 
                           !(ex3(cmd, 'copy_programmable') && ex3(cmd, 'copy_text'));
@@ -96,6 +97,8 @@ function updateOptionPage(cmd) {
   
   
   // その他
+  const spopup = popup || ex3(cmd, 'popup_comlate');
+  document.getElementById('shortcut_popup').disabled = !spopup;
   document.removeEventListener('paste', onPaste, true);
   if (ex3(cmd, 'paste_overwrite')) {
     document.addEventListener('paste', onPaste, true);

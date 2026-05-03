@@ -135,6 +135,7 @@ const createFormatText = (cmd, tabs) => {
     //keyset['${String}'] = 'String';
     // 未定義の方が違和感がない？
     //keyset['${tabs.length}'] = tabs.length;
+    keyset['${language}'] = navigator.language;
     keyset['${tabsLength}'] = tabs.length;
   }
   if (isText) {
@@ -198,6 +199,7 @@ const createFormatText = (cmd, tabs) => {
       keyset['${username:password@}'] = url.username != '' 
                                       ? url.username+(url.password != '' ? ':'+url.password : '')+'@'
                                       : '';
+      keyset['${protocol:}'] = url.protocol + (url.href.startsWith(url.protocol+'//') ? '//' : '');
       keyset['${:port}'] = url.port != '' ? ':'+url.port : '';
       if (isPunycode) {
         try { keyset['${hostname}'] = punycode.toUnicode(url.hostname); } catch {}
@@ -220,6 +222,9 @@ const createFormatText = (cmd, tabs) => {
         });
       }
       // 備考：username, password は、閲覧 URL としては出現しないはず（一応実装しておく）
+      // 備考：hostname のパーセントエンコードは、ブラウザ側が自動的に処理する。
+      //       protocol, username, password, pathname のパーセントエンコードは、処理されない。
+      //       username, password のパーセントエンコードは、デコードすべき？
     }
     
     // Scripting

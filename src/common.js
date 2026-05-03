@@ -5,19 +5,19 @@
 
 
 /**
- * 備考
- * 最小対応バージョンの覚書
+ * 備考：最小対応バージョンの覚書
  * 
- * Firefox 115.0+
+ * Firefox
  *   manifest.json
  *     browser_specific_settings.gecko.strict_min_version = "115.0";
  *   109: Manifest V3 対応（既定で有効化）
+ *   109: chrome.action.openPopup()
  *   102: browser.scripting.executeScript()
  *   115: chrome.storage.session
- *   115: ESR
+ *   149: chrome.action.openPopup() （ユーザー操作なし実行。以前は非同期でエラー終了）
  *   ???: background module 対応
  * 
- * Android Firefox 121.0+
+ * Android Firefox
  *   manifest.json
  *     browser_specific_settings.gecko_android.strict_min_version = "121.0";
  *   107: Android Firefox Bate: Supports WebExtension API
@@ -27,9 +27,9 @@
  *     chrome.contextMenus
  *     chrome.commands
  * 
- * Chrome 116+
+ * Chrome
  *   manifest.json
- *     minimum_chrome_version = "116.0"
+ *     minimum_chrome_version = "127.0"
  *   88:  Manifest v3 対応
  *   88:  chrome.scripting.executeScript()
  *   94:  structuredClone()
@@ -37,7 +37,8 @@
  *   103: chrome.i18n.getMessage 不具合対応
  *   109: chrome.offscreen
  *   116: chrome.runtime.getContexts({contextTypes:['OFFSCREEN_DOCUMENT']});
-*/
+ *   127: chrome.action.openPopup()
+ */
 
 
 /*
@@ -69,7 +70,9 @@ const module = {};
 
 
 // ブラウザ判定
-const isFirefox = () => 'browser' in globalThis;
+const _isFirefox = chrome.runtime.getManifest()?.browser_specific_settings?.gecko?.id
+                 === 'CopyTabTitleUrl@bugbugnow.net';
+const isFirefox = () => _isFirefox;
 const isChrome = () => !isFirefox();
 const isKiwi = () => isChrome() && /(Android)/i.test(navigator.userAgent);
 const isMobile = () => /(Mobile|Android|iPhone)/i.test(navigator.userAgent);
@@ -245,6 +248,7 @@ const defaultStorageVersion3 = {
     menus_format9: false,
     
     shortcut_target: false,             // v3.3.2
+    shortcut_popup: false,              // v3.6.2
     
     copy_programmable: false,           // v3.1.0
     copy_scripting: false,              // v3.1.0
@@ -314,6 +318,7 @@ const defaultStorageVersion3 = {
     // Markdown special characters [*_\`#+-.!{}[]()]
     // see https://daringfireball.net/projects/markdown/syntax#backslash
   ],
+  temp_shortcut_popup: false,                   // v3.6.2
   
   // 備考：容量概算
   // 　　　(12[menus.title] x 64 x 2) + (12[formats] x 256 x 2) + (10[texts] x 256 x 2) = 33
@@ -346,6 +351,7 @@ const extendedMode = [
   'menus_format9', 
   
   'shortcut_target',
+  'shortcut_popup',
   
   'copy_programmable',
   'copy_scripting',
