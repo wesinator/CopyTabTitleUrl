@@ -32,13 +32,14 @@ const chromeAction = chrome.action || chrome.browserAction;
 /* イベント                                                                   */
 /* ========================================================================== */
 // ブラウザアクション
-chromeAction.onClicked.addListener(async (tab) => {
+chromeAction.onClicked.addListener(async (tab, OnClickData) => {
   const cmd = await chrome.storage.local.get(defaultStorage);
   const id = 3;
   cmd.id = id;
   cmd.format = cmd.formats[id];
   cmd.target = cmd.browser_action_target;
   cmd.tab = tab;
+  cmd.actionInfo = OnClickData;
   onCopy(cmd);
 });
 

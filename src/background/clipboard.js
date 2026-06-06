@@ -214,6 +214,7 @@ const onCopy = async (cmd) => {
     cmd.scripting = await executeScript(temp[0], cmd);
   }
   cmd.selectionText = cmd.info?.selectionText || cmd.scripting?.pageSelectionText || '';
+  cmd.info = cmd.info || cmd.actionInfo;
   
   // クリップボードにコピー
   await copyToClipboard(cmd, temp);
