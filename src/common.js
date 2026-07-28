@@ -320,11 +320,13 @@ const defaultStorageVersion3 = {
   ],
   temp_shortcut_popup: false,                   // v3.6.2
   
-  // 備考：容量概算
-  // 　　　(12[menus.title] x 64 x 2) + (12[formats] x 256 x 2) + (10[texts] x 256 x 2) = 33
-  // 　　　1536 + 6144 + 5120 = 12800 = 13 KB
-  // 　　　合計：5 + 17 = 22 KB
+  // 備考：ストレージ容量概算
+  // 　　　13 KB[テキスト関連] + 3 KB[その他の項目] = 16 KB = 20 KB (概算)
+  // 　　　(12[menus.title] x 64 x 2) + (12[formats] x 256 x 2) + (10[texts] x 256 x 2)
+  // 　　　= 1,536 + 6,144 + 5,120 = 12,800 = 13 KB (テキスト関連)
+  // 　　　60[項目] x 50[文字] = 3,000 = 3 KB (その他の項目)
   // 　　　chrome.storage.local = 10 MB
+  // 　　　chrome.storage.session = 10 MB
   // 　　　chrome.storage.sync  = 100 KB
 };
 Object.freeze(defaultStorageVersion3);
