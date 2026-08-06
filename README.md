@@ -10,6 +10,8 @@ https://addons.mozilla.org/firefox/addon/copytabtitleurl/
 CopyTabTitleUrl - Chrome Web Store  
 https://chrome.google.com/webstore/detail/copytabtitleurl/lmgbdjfoaihhgdphombpgjpaohjfeapp
 
+CopyTabTitleUrl - Microsoft Edge Addons  
+https://microsoftedge.microsoft.com/addons/detail/copytabtitleurl/cgknadjdidogceajdoepjognnjimdifh
 
 
 ## Features
